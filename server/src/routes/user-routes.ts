@@ -10,8 +10,8 @@ router.post('/login', loginUser);
 router.use(authMiddleware);
 router.put('/update-name', updateName);
 router.put('/change-password', changePassword);
-router.put('/block-user/:userId', blockUser);
-router.put('/unblock-user/:userId', unblockUser);
-router.get('/search/:query', searchUser);
+router.put('/block-user', blockUser);
+router.put('/unblock-user', unblockUser);
+router.get('/search', searchUser);
 
 export default router;
