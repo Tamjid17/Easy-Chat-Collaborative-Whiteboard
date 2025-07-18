@@ -321,7 +321,7 @@ export const unblockUser = async (req: Request, res: Response): Promise<void> =>
 
 export const searchUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const email = req.query.email as string;
+        const { email } = req.query;
         if (!email) {
             res.status(400).json({
                 success: false,
@@ -340,7 +340,7 @@ export const searchUser = async (req: Request, res: Response): Promise<void> => 
         const { password, ...safeUser } = user?.toObject();
         res.status(200).json({
             success: true,
-            data: safeUser,
+            user: safeUser,
         });
     } catch(e: any) {
         console.error('Error', e);
