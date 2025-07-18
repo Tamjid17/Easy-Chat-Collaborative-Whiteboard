@@ -196,3 +196,157 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
         });
     }
 }
+
+export const blockUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userInfo?.userId;
+        const { userToBlockId } = req.body;
+
+        // check if userToBlockId is provided
+        if (!userToBlockId) {
+            res.status(400).json({
+                success: false,
+                message: "User ID to block is required.",
+            });
+            return;
+        }
+
+        // check if the user is logged in
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+            return;
+        }
+
+        // check if the user to block exists
+        const userToBlock = await User.findById(userToBlockId);
+        if (!userToBlock) {
+            res.status(404).json({
+                success: false,
+                message: "User to block not found.",
+            });
+            return;
+        }
+
+        // check if the user is already blocked
+        if (user.blockedUsers.includes(userToBlockId)) {
+            res.status(400).json({
+                success: false,
+                message: "User is already blocked.",
+            });
+            return;
+        }
+
+        // block the user
+        user.blockedUsers.push(userToBlockId);
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "User blocked successfully",
+        });
+    } catch(e: any) {
+        console.error('Error', e);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong, please try again later",
+        });
+    }
+}
+
+export const unblockUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userInfo?.userId;
+        const { userToUnblockId } = req.body;
+
+        // input field validation
+        if(!userToUnblockId) {
+            res.status(400).json({
+                success: false,
+                message: "User ID to block is required.",
+            });
+            return;
+        }
+        
+        //check if user exists
+        const user = await User.findById(userId);
+        if(!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+            return;
+        }
+
+        //check if the user to unblock exists
+        const userToUnblock = await User.findById(userToUnblockId);
+        if (!userToUnblock) {
+          res.status(404).json({
+            success: false,
+            message: "User to block not found.",
+          });
+          return;
+        }
+
+        // check if the user exists in block list
+        const isUserBlocked = user.blockedUsers.includes(userToUnblockId);
+        if(!isUserBlocked) {
+            res.status(400).json({
+                success: false,
+                message: "User is not blocked.",
+            });
+            return;
+        }
+
+        // unblock the user
+        user.blockedUsers = user.blockedUsers.filter(id => id.toString() !== userToUnblockId);
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "User unblocked successfully",
+        });
+
+    } catch(e: any) {
+        console.error('Error', e);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong, please try again later",
+        });
+    }
+}
+
+export const searchUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const email = req.query.email as string;
+        if (!email) {
+            res.status(400).json({
+                success: false,
+                message: "Email query parameter is required.",
+            });
+            return;
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+            return;
+        }
+        const { password, ...safeUser } = user?.toObject();
+        res.status(200).json({
+            success: true,
+            data: safeUser,
+        });
+    } catch(e: any) {
+        console.error('Error', e);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong, please try again later",
+        });
+    }
+}
