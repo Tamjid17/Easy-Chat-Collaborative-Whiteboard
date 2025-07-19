@@ -3,14 +3,25 @@ import Conversation from "../models/Conversation";
 import Message from "../models/Message";
 
 import mongoose from "mongoose";
+import uploadImageFromBuffer from "../helpers/cloudinary-helper";
 
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { conversationId, content, image } = req.body;
+        const { conversationId, content } = req.body;
         const senderId = (req as any).userInfo?.userId;
+        let imageUrl = '';
+        let imagePublicId = '';
+
+        // Check if an image file was uploaded
+        if (req.file) {
+          // upload to cloudinary using the helper function
+            const { secure_url, public_id } = await uploadImageFromBuffer(req.file.buffer);
+            imageUrl = secure_url;
+            imagePublicId = public_id;
+        }
 
         // 1. Validate input
-        if (!conversationId || (!content && !image)) {
+        if (!conversationId || (!content && !imageUrl)) {
             res.status(400).json({
                 success: false,
                 message:
@@ -42,8 +53,9 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
         const newMessage = new Message({
             sender: senderId,
             conversationId: conversation._id,
-            content: content || undefined, // Only set if content is provided
-            image: image || "", // Default to empty string if no image
+            content: content || '',
+            image: imageUrl || "",
+            imagePublicId: imagePublicId || '',
         });
 
         await newMessage.save();
