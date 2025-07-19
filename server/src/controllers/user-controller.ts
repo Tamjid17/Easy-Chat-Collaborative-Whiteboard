@@ -1,14 +1,29 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+import cloudinary from '../config/cloudinary';
 import dotenv from 'dotenv';
 dotenv.config();
 
 import User from '../models/User';
 import { Request, Response } from 'express';
+import uploadImageFromBuffer from '../helpers/cloudinary-helper';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const {email, fullName, password, profilePicture} = req.body;
+        const {email, fullName, password} = req.body;
+        let profilePictureUrl = '';
+        let profilePicturePublicId = '';
+
+        // check if a file was uploaded by multer
+        if (req.file) {
+            // upload to cloudinary using the helper function
+            const { secure_url, public_id } = await uploadImageFromBuffer(
+              req.file.buffer
+            );
+            profilePictureUrl = secure_url;
+            profilePicturePublicId = public_id;
+        }
+
         //check if the user already exist
         const userExists = await User.findOne({email: email});
         if (userExists) {
@@ -21,7 +36,13 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         }
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const newUser = await User.create({fullName, email, password: hashedPassword, profilePicture: profilePicture || ''});
+        const newUser = await User.create({
+            fullName, 
+            email, 
+            password: hashedPassword, 
+            profilePicture: profilePictureUrl,
+            profilePicturePublicId
+        });
 
         if(!newUser) {
             res.status(404).json({
@@ -131,6 +152,56 @@ export const updateName = async (req: Request, res: Response): Promise<void> => 
         });
     } catch(e: any) {
         console.error('Error', e)
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong, please try again later",
+        });
+    }
+}
+
+export const updateProfilePicture = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userInfo?.userId;
+
+        if (!req.file) {
+            res.status(400).json({ success: false, message: 'No image file provided.' });
+            return;
+        }
+        
+        // find the current user to get the old public_id
+        const currentUser = await User.findById(userId);
+        if (!currentUser) {
+            res.status(404).json({ success: false, message: 'User not found.' });
+            return;
+        }
+        const oldPublicId = currentUser.profilePicturePublicId;
+
+        // upload the new image to Cloudinary
+        const { secure_url, public_id } = await uploadImageFromBuffer(req.file.buffer);
+
+        // update the user document with the new image details
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { 
+                profilePicture: secure_url,
+                profilePicturePublicId: public_id,
+            }, 
+            { new: true }
+        ).select('-password');
+
+        // if old image exists delete it from Cloudinary
+        if (oldPublicId) {
+            await cloudinary.uploader.destroy(oldPublicId);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile picture updated successfully.',
+            user: updatedUser,
+        });
+
+    } catch (e: any) {
+        console.error('Error in updateProfilePicture:', e);
         res.status(500).json({
             success: false,
             message: "Something went wrong, please try again later",
