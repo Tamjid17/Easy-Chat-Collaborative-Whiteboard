@@ -1,9 +1,10 @@
-import { Button } from "./components/ui/button"
+//import { Button } from "./components/ui/button"
+import AuthPage from "./features/AuthPage"
 
 function App() {
   return (
     <div>
-      <Button className="bg-customPrimary text-white">Click Me</Button>
+      <AuthPage />
     </div>
   )
 }
