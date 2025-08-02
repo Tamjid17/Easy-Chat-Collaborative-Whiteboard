@@ -114,7 +114,13 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json({
             success: true,
             message: "Logged in successfully",
-            accessToken
+            accessToken,
+            user: {
+                _id: user._id,
+                email: user.email,
+                fullName: user.fullName,
+                profilePicture: user.profilePicture
+            }
         });
     } catch(e: any) {
         console.error('Login error: ', e);
