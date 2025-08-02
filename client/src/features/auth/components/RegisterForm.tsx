@@ -2,13 +2,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, ImageIcon, Lock, MessageSquareText, User } from "lucide-react";
+import { AtSign, ImageIcon, Lock, MessageSquareText, User, Eye, EyeClosed } from "lucide-react";
+import { useState } from "react";
 
 type RegisterFormProps = {
   setIsLoginView: (value: boolean) => void;
 };
 
 const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
   return (
     <Card className="w-full bg-card shadow-lg border-border/40">
       <CardHeader className="text-center">
@@ -56,9 +64,20 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
           <Label htmlFor="password">Password</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            {isPasswordVisible ? (
+              <Eye
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            ) : (
+              <EyeClosed
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            )}
             <Input
               id="password"
-              type="password"
+              type={isPasswordVisible ? "text" : "password"}
               placeholder="••••••••"
               className="pl-10"
               required
@@ -69,9 +88,20 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
           <Label htmlFor="confirmPassword">Confirm Password</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            {isPasswordVisible ? (
+              <Eye
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            ) : (
+              <EyeClosed
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            )}
             <Input
               id="confirmPassword"
-              type="password"
+              type={isPasswordVisible ? "text" : "password"}
               placeholder="••••••••"
               className="pl-10"
               required

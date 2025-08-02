@@ -2,13 +2,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, Lock, MessageSquareText } from "lucide-react";
+import { AtSign, Lock, MessageSquareText, Eye, EyeClosed } from "lucide-react";
+import { useState } from "react";
 
 type LoginFormProps = {
   setIsLoginView: (value: boolean) => void;
 };
 
 const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
   return (
     <Card className="w-full bg-card shadow-lg border-border/40">
       <CardHeader className="text-center">
@@ -43,9 +51,20 @@ const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
           <Label htmlFor="password">Password</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            {isPasswordVisible ? (
+              <Eye
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            ) : (
+              <EyeClosed
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+              />
+            )}
             <Input
               id="password"
-              type="password"
+              type={isPasswordVisible ? "text" : "password"}
               placeholder="••••••••"
               className="pl-10"
               required
