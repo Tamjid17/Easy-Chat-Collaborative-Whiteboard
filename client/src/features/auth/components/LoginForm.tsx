@@ -3,7 +3,19 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AtSign, Lock, MessageSquareText, Eye, EyeClosed } from "lucide-react";
+
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from "@/lib/utils";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 type LoginFormProps = {
   setIsLoginView: (value: boolean) => void;
@@ -11,82 +23,108 @@ type LoginFormProps = {
 
 const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
+  const onSubmit = (data: LoginFormData) => {
+    console.log(data);
+  };
+
   return (
-    <Card className="w-full bg-card shadow-lg border-border/40">
-      <CardHeader className="text-center">
-        <div className="flex justify-center items-center mb-4">
-          <MessageSquareText className="h-10 w-10 text-customPrimary" />
-        </div>
-        <CardTitle className="text-2xl font-bold text-customPrimary">
-          Easy Chat
-        </CardTitle>
-        <CardTitle className="text-lg font-semibold text-customAccentTwo">
-          Welcome Back
-        </CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Sign in to continue to your chats.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              className="pl-10"
-              required
-            />
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card className="w-full bg-card shadow-lg border-border/40">
+        <CardHeader className="text-center">
+          <div className="flex justify-center items-center mb-4">
+            <MessageSquareText className="h-10 w-10 text-customPrimary" />
           </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            {isPasswordVisible ? (
-              <Eye
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
-                onClick={togglePasswordVisibility}
+          <CardTitle className="text-2xl font-bold text-customPrimary">
+            Easy Chat
+          </CardTitle>
+          <CardTitle className="text-lg font-semibold text-customAccentTwo">
+            Welcome Back
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Sign in to continue to your chats.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          
+          {/* Email field */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                className={cn("pl-10", errors.email && "border-destructive")}
+                {...register("email")}
               />
-            ) : (
-              <EyeClosed
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
-                onClick={togglePasswordVisibility}
-              />
+            </div>
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
-            <Input
-              id="password"
-              type={isPasswordVisible ? "text" : "password"}
-              placeholder="••••••••"
-              className="pl-10"
-              required
-            />
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold">
-          Sign In
-        </Button>
-        <p className="text-sm text-center text-muted-foreground">
-          Don't have an account?{" "}
-          <button
-            onClick={() => setIsLoginView(false)}
-            className="font-semibold text-customAccentTwo hover:underline focus:outline-none hover:cursor-pointer"
-          >
-            Create one
-          </button>
-        </p>
-      </CardFooter>
-    </Card>
+
+          {/* Password field */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              {isPasswordVisible ? (
+                <Eye
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                  onClick={togglePasswordVisibility}
+                />
+              ) : (
+                <EyeClosed
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+                  onClick={togglePasswordVisibility}
+                />
+              )}
+              <Input
+                id="password"
+                type={isPasswordVisible ? "text" : "password"}
+                placeholder="••••••••"
+                className={cn("pl-10", errors.password && "border-destructive")}
+                {...register("password")}
+              />
+            </div>
+            {errors.password && (
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <Button className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold">
+            Sign In
+          </Button>
+          <p className="text-sm text-center text-muted-foreground">
+            Don't have an account?{" "}
+            <button
+              onClick={() => setIsLoginView(false)}
+              className="font-semibold text-customAccentTwo hover:underline focus:outline-none hover:cursor-pointer"
+            >
+              Create one
+            </button>
+          </p>
+        </CardFooter>
+      </Card>
+    </form>
   );
 };
 
