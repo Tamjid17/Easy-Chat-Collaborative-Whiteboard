@@ -9,6 +9,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
+import { useLoginMutation } from "@/hooks/useAuth";
+import { AxiosError } from "axios";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +24,8 @@ type LoginFormProps = {
 };
 
 const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
+
+  const { mutate, isPending, isError, error } = useLoginMutation();
 
   const {
     register,
@@ -38,7 +42,7 @@ const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
   };
 
   const onSubmit = (data: LoginFormData) => {
-    console.log(data);
+    mutate(data);
   };
 
   return (
@@ -59,7 +63,6 @@ const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          
           {/* Email field */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -110,9 +113,20 @@ const LoginForm = ({ setIsLoginView }: LoginFormProps) => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold">
-            Sign In
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold"
+          >
+            {isPending ? "Signing In..." : "Sign In"}
           </Button>
+          {isError && (
+            <p className="text-sm text-destructive">
+              {error instanceof AxiosError && error.response?.data?.message
+                ? error.response.data.message
+                : "An unknown error occurred."}
+            </p>
+          )}
           <p className="text-sm text-center text-muted-foreground">
             Don't have an account?{" "}
             <button
