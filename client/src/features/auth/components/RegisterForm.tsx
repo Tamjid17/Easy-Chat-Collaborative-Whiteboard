@@ -1,31 +1,54 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, ImageIcon, Lock, MessageSquareText, User, Eye, EyeClosed } from "lucide-react";
+import {
+  AtSign,
+  ImageIcon,
+  Lock,
+  MessageSquareText,
+  User,
+  Eye,
+  EyeClosed,
+} from "lucide-react";
 
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { useRegisterMutation } from "@/hooks/useAuth";
+import { AxiosError } from "axios";
 
-const registrationSchema = z.object({
-  fullName: z.string().min(3, "Full name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().regex(
-    /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*\d)[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
-    "Password must be at least 8 characters long and contain at least one number and one special character"
-  ),
-  confirmPassword: z.string().regex(
-    /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*\d)[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
-    "Password must be at least 8 characters long and contain at least one number and one special character"
-  ),
-  profilePicture: z.instanceof(File).optional(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-})
+const registrationSchema = z
+  .object({
+    fullName: z.string().min(3, "Full name is required"),
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .regex(
+        /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*\d)[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+        "Password must be at least 8 characters long and contain at least one number and one special character"
+      ),
+    confirmPassword: z
+      .string()
+      .regex(
+        /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*\d)[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+        "Password must be at least 8 characters long and contain at least one number and one special character"
+      ),
+    profilePicture: z.instanceof(File).optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
@@ -34,6 +57,7 @@ type RegisterFormProps = {
 };
 
 const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
+  const { mutate, isPending, isError, error } = useRegisterMutation();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -52,11 +76,12 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
       email: "",
       password: "",
       confirmPassword: "",
-    }
+    },
   });
 
   const onSubmit = (data: RegistrationFormData) => {
     console.log("Submitted Data:", data);
+    mutate(data);
   };
 
   return (
@@ -77,7 +102,6 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          
           {/* Full Name field */}
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
@@ -92,7 +116,9 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
               />
             </div>
             {errors.fullName && (
-              <p className="text-sm text-destructive">{errors.fullName.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.fullName.message}
+              </p>
             )}
           </div>
 
@@ -193,9 +219,20 @@ const RegisterForm = ({ setIsLoginView }: RegisterFormProps) => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold">
-            Create Account
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-customPrimary text-primary-foreground hover:cursor-pointer hover:bg-customPrimary/90 font-semibold"
+          >
+            {isPending ? "Creating Account..." : "Create Account"}
           </Button>
+          {isError && (
+            <p className="text-sm text-destructive">
+              {error instanceof AxiosError && error.response?.data?.message
+                ? error.response.data.message
+                : "An unknown error occurred."}
+            </p>
+          )}
           <p className="text-sm text-center text-muted-foreground">
             Already have an account?{" "}
             <button
