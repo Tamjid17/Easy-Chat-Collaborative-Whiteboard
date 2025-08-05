@@ -403,14 +403,19 @@ export const unblockUser = async (req: Request, res: Response): Promise<void> =>
 export const searchUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email } = req.query;
-        if (!email) {
-            res.status(400).json({
-                success: false,
-                message: "Email query parameter is required.",
-            });
-            return;
+        if (!email || typeof email !== "string") {
+          res.status(400).json({
+            success: false,
+            message: "Email query parameter is required.",
+          });
+          return;
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({
+                email: new RegExp(`^${email}$`, 'i') 
+            }).select(('-password'));
+
+        const users = user ? [user] : [];
+
         if (!user) {
             res.status(404).json({
                 success: false,
@@ -421,7 +426,7 @@ export const searchUser = async (req: Request, res: Response): Promise<void> => 
         const { password, ...safeUser } = user?.toObject();
         res.status(200).json({
             success: true,
-            user: safeUser,
+            users: users,
         });
     } catch(e: any) {
         console.error('Error', e);
