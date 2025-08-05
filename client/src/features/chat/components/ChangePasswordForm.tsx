@@ -7,8 +7,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const passwordSchema = z.object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  oldPassword: z.string().min(1, "Current password is required"),
+  newPassword: z
+    .string()
+    .regex(
+      /^(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*\d)[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+      "Password must be at least 8 characters long and contain at least one number and one special character"
+    ),
 });
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
@@ -22,20 +27,22 @@ const ChangePasswordForm = () => {
         resolver: zodResolver(passwordSchema),
     });
 
-    const onSubmit = (data: PasswordFormData) => changePassword(data);
+    const onSubmit = (data: PasswordFormData) => {
+        changePassword(data);
+    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
         <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
+            <Label htmlFor="oldPassword">Old Password</Label>
             <Input
-            id="currentPassword"
+            id="oldPassword"
             type="password"
-            {...register("currentPassword")}
+            {...register("oldPassword")}
             />
-            {errors.currentPassword && (
+            {errors.oldPassword && (
             <p className="text-sm text-destructive">
-                {errors.currentPassword.message}
+                {errors.oldPassword.message}
             </p>
             )}
         </div>

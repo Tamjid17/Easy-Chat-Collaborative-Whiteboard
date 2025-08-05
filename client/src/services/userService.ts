@@ -23,8 +23,8 @@ export const updateProfilePicture = async (file: File) => {
     return data;
 }
 
-export const changePassword = async (currentPassword: string, newPassword: string) => {
-    const { data } = await apiClient.put("users/change-password", { currentPassword, newPassword });
+export const changePassword = async (oldPassword: string, newPassword: string) => {
+    const { data } = await apiClient.put("users/change-password", { oldPassword, newPassword });
     return data;
 };
 

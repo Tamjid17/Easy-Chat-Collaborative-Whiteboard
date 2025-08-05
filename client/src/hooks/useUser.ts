@@ -58,9 +58,9 @@ export const useUpdateProfilePicture = () => {
 export const useChangePassword = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (variables: { currentPassword: string; newPassword: string }) =>
+    mutationFn: (variables: { oldPassword: string; newPassword: string }) =>
       userService.changePassword(
-        variables.currentPassword,
+        variables.oldPassword,
         variables.newPassword
       ),
     onSuccess: () => {
