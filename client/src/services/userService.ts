@@ -1,14 +1,14 @@
 import apiClient from "@/api/apiClient";
 
 export const searchUsers = async (query: string) => {
-  const { data } = await apiClient.get("/users/search", {
+  const { data } = await apiClient.get("users/search", {
     params: { query },
   });
   return data;
 };
 
 export const updateName = async (fullName: string) => {
-    const { data } = await apiClient.put("update-name", { fullName });
+    const { data } = await apiClient.put("users/update-name", { fullName });
     return data;
 }
 
@@ -24,16 +24,16 @@ export const updateProfilePicture = async (file: File) => {
 }
 
 export const changePassword = async (currentPassword: string, newPassword: string) => {
-    const { data } = await apiClient.put("change-password", { currentPassword, newPassword });
+    const { data } = await apiClient.put("users/change-password", { currentPassword, newPassword });
     return data;
 };
 
 export const blockUser = async (userId: string) => {
-    const { data } = await apiClient.put("block-user", { userId });
+    const { data } = await apiClient.put("users/block-user", { userId });
     return data;
 }
 
 export const unblockUser = async (userId: string) => {
-    const { data } = await apiClient.put("unblock-user", { userId });
+    const { data } = await apiClient.put("users/unblock-user", { userId });
     return data;
 };
