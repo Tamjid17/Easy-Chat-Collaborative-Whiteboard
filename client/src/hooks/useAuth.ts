@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 
 import { registerUser, loginUser } from '../services/authService';
 import { useAuthStore } from '../store/authStore';
+import { useNavigate } from 'react-router-dom';
 
 export const useRegisterMutation = () => {
     return useMutation({
@@ -29,6 +30,7 @@ export const useRegisterMutation = () => {
 
 export const useLoginMutation = () => {
     const { setAuth } = useAuthStore();
+    const navigate = useNavigate();
     return useMutation({
       mutationFn: loginUser,
       onSuccess: (data) => {
@@ -49,6 +51,8 @@ export const useLoginMutation = () => {
           toast.success("Login Successful!", {
             description: `Welcome back, ${decodedToken.fullName}!`,
           });
+
+          navigate("/");
         } else {
           toast.error("Login Failed", {
             description: data.message || "Invalid credentials provided.",

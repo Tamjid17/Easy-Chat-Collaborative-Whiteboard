@@ -8,13 +8,23 @@ import { useSearchUsers } from "@/hooks/useUser";
 import type { User } from "@/lib/types/user";
 import { useAuthStore } from "@/store/authStore"; 
 import UserSettingsModal from "./UserSettingsModal";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Sidebar = () => {
+    const navigate = useNavigate();
 
     const user = useAuthStore((state) => state.user);
     const clearAuth = useAuthStore((state) => state.clearAuth);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
+
+    const handleLogout = () => {
+        clearAuth();
+        toast.info("You have been logged out.");
+        navigate("/login");
+    }
 
     useEffect(() => {
         const timerId = setTimeout(() => {
@@ -45,7 +55,7 @@ const Sidebar = () => {
           </div>
           <div className="flex items-center">
             <UserSettingsModal />
-            <Button onClick={clearAuth} variant="ghost" size="icon">
+            <Button onClick={handleLogout} variant="ghost" size="icon">
                 <LogOut className="h-5 w-5 text-muted-foreground" />
             </Button>
           </div>
