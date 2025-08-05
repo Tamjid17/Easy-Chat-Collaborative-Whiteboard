@@ -119,7 +119,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
                 _id: user._id,
                 email: user.email,
                 fullName: user.fullName,
-                profilePicture: user.profilePicture
+                profilePicture: user.profilePicture,
+                joinedAt: user.joinedAt,
+                blockedUsers: user.blockedUsers,
+                activeStatus: user.activeStatus,
             }
         });
     } catch(e: any) {
