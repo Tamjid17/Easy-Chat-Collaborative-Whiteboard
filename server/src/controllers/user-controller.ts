@@ -158,6 +158,7 @@ export const updateName = async (req: Request, res: Response): Promise<void> => 
         res.status(200).json({
             success: true,
             message: "Name updated successfully",
+            user: updatedUser,
         });
     } catch(e: any) {
         console.error('Error', e)
