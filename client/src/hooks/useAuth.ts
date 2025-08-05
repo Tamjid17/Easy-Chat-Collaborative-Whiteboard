@@ -30,29 +30,39 @@ export const useRegisterMutation = () => {
 export const useLoginMutation = () => {
     const { setAuth } = useAuthStore();
     return useMutation({
-        mutationFn: loginUser,
-        onSuccess: (data) => {
-            console.log("Login response:", data);
-            if(data && data.success && data.accessToken) {
-                const decodedToken: { fullName: string } = jwtDecode(data.accessToken);
-                setAuth(data.accessToken, { fullName: decodedToken.fullName, email: data.user.email, id: data.user._id, profilePicture: data.user.profilePicture });
-                toast.success("Login Successful!", {
-                    description: `Welcome back, ${decodedToken.fullName}!`,
-                });
-            } else {
-                toast.error("Login Failed", {
-                    description: data.message || "Invalid credentials provided.",
-                });
-            }
-        },
-        onError: (e) => {
-            const errorMessage =
-                (e instanceof AxiosError && e?.response?.data?.message) ||
-                "Invalid credentials or server error.";
-            toast.error("Login Failed", {
-                description: errorMessage,
-            });
-            console.error("Login failed:", e);
+      mutationFn: loginUser,
+      onSuccess: (data) => {
+        console.log("Login response:", data);
+        if (data && data.success && data.accessToken && data.user) {
+          const decodedToken: { fullName: string } = jwtDecode(
+            data.accessToken
+          );
+          setAuth(data.accessToken, {
+            fullName: decodedToken.fullName,
+            email: data.user.email,
+            _id: data.user._id,
+            profilePicture: data.user.profilePicture,
+            joinedAt: data.user.joinedAt,
+            blockedUsers: data.user.blockedUsers,
+            activeStatus: data.user.activeStatus,
+          });
+          toast.success("Login Successful!", {
+            description: `Welcome back, ${decodedToken.fullName}!`,
+          });
+        } else {
+          toast.error("Login Failed", {
+            description: data.message || "Invalid credentials provided.",
+          });
         }
-    })
+      },
+      onError: (e) => {
+        const errorMessage =
+          (e instanceof AxiosError && e?.response?.data?.message) ||
+          "Invalid credentials or server error.";
+        toast.error("Login Failed", {
+          description: errorMessage,
+        });
+        console.error("Login failed:", e);
+      },
+    });
 }
