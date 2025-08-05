@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 
 import * as userService from "../services/userService";
+import { useAuthStore } from "@/store/authStore";
 
 
 export const useSearchUsers = (query: string) => {
@@ -16,12 +17,20 @@ export const useSearchUsers = (query: string) => {
 
 export const useUpdateName = () => {
   const queryClient = useQueryClient();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const token = useAuthStore((state) => state.token);
+
   return useMutation({
     mutationFn: userService.updateName,
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success("Name Updated!", {
         description: `Your name has been changed to ${data.user.fullName}.`,
       });
+
+      if (token && data.user) {
+        setAuth(token, data.user);
+      }
+
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
@@ -36,12 +45,19 @@ export const useUpdateName = () => {
 
 export const useUpdateProfilePicture = () => {
   const queryClient = useQueryClient();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const token = useAuthStore((state) => state.token);
+
   return useMutation({
     mutationFn: userService.updateProfilePicture,
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast.success("Profile Picture Updated!", {
         description: "Your new picture has been saved.",
       });
+
+      if (token && data.user) {
+        setAuth(token, data.user);
+      }
 
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
