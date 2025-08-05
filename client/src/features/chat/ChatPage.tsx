@@ -4,10 +4,13 @@ import ChatMessages from "./components/ChatMessages";
 import ChatInput from "./components/ChatInput";
 import UserProfile from "./components/UserProfile";
 import { useState } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 export default function ChatPage() {
 
-    const [selectedChat, setSelectedChat] = useState(true);
+    
+    const user = useAuthStore((state) => state.user);
+    const [selectedChat, setSelectedChat] = useState(false);
 
     return (
         <div className="font-sans h-screen w-full flex bg-customBackground">
@@ -23,8 +26,14 @@ export default function ChatPage() {
                 <ChatInput />
             </>
             ) : (
-            <UserProfile />
-            )}
+                    user ? (
+                        <UserProfile user={user} />
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center">
+                            <p className="text-muted-foreground">Loading user profile...</p>
+                        </div>
+                    )
+                )}
         </main>
         </div>
     );
