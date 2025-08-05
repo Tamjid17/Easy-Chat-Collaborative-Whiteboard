@@ -2,7 +2,7 @@ import apiClient from "@/api/apiClient";
 
 export const searchUsers = async (query: string) => {
   const { data } = await apiClient.get("users/search", {
-    params: { query },
+    params: { email: query },
   });
   return data;
 };
