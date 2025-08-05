@@ -1,16 +1,12 @@
+import type { User } from '@/lib/types/user';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface AuthState {
     token: string | null;
-    user: {
-        id: string;
-        fullName: string;
-        email: string;
-        profilePicture?: string;
-    } | null;
+    user: User | null;
     isAuthenticated: boolean;
-    setAuth: (token: string, user: { id: string; fullName: string; email: string; profilePicture?: string }) => void;
+    setAuth: (token: string, user: User) => void;
     clearAuth: () => void;
 }
 
