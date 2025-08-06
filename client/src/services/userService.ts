@@ -29,11 +29,15 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
 };
 
 export const blockUser = async (userId: string) => {
-    const { data } = await apiClient.put("users/block-user", { userId });
+    const { data } = await apiClient.put("users/block-user", {
+      userToBlockId: userId,
+    });
     return data;
 }
 
 export const unblockUser = async (userId: string) => {
-    const { data } = await apiClient.put("users/unblock-user", { userId });
+    const { data } = await apiClient.put("users/unblock-user", {
+      userToUnblockId: userId,
+    });
     return data;
 };
