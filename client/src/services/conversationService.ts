@@ -10,9 +10,8 @@ export const getChatHistory = async (conversationId: string) => {
     return data;
 };
 
-export const createConversation = async (senderId: string, recipientId: string) => {
+export const createConversation = async (recipientId: string) => {
     const { data } = await apiClient.post("/conversations", {
-        senderId,
         recipientId,
     });
     return data;
