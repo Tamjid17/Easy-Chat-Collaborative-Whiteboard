@@ -98,8 +98,19 @@ export const useBlockUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: userService.blockUser,
-    onSuccess: () => {
+    onSuccess: (data, userIdToBlock) => {
       toast.success("User Blocked");
+
+      const { user, token, setAuth } = useAuthStore.getState();
+
+      if (user && token) {
+        const updatedUser = {
+          ...user,
+          blockedUsers: [...user.blockedUsers, userIdToBlock],
+        };
+        setAuth(token, updatedUser);
+      }
+
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
@@ -116,8 +127,19 @@ export const useUnblockUser = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: userService.unblockUser,
-        onSuccess: () => {
+        onSuccess: (data, userIdToUnblock) => {
             toast.success("User Unblocked");
+
+            const { user, token, setAuth } = useAuthStore.getState();
+
+            if (user && token) {
+                const updatedUser = {
+                    ...user,
+                    blockedUsers: user.blockedUsers.filter((id) => id !== userIdToUnblock),
+                };
+                setAuth(token, updatedUser);
+            }
+
             queryClient.invalidateQueries({ queryKey: ["users"] });
             queryClient.invalidateQueries({ queryKey: ["conversations"] });
         },
