@@ -8,7 +8,7 @@ import uploadImageFromBuffer from "../helpers/cloudinary-helper";
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
     try {
         const { conversationId, content } = req.body;
-        const senderId = (req as any).userInfo?.userId;
+        const senderId = (req as any).user?._id;
         let imageUrl = '';
         let imagePublicId = '';
 
@@ -40,7 +40,9 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
         }
 
         // 3. Security Check: Ensure the sender is a participant
-        const isParticipant = conversation.participants.includes(new mongoose.Types.ObjectId(senderId));
+        const participantIds = conversation.participants.map(p => p.toString());
+        const isParticipant = participantIds.includes(senderId.toString());
+
         if (!isParticipant) {
             res.status(403).json({
                 success: false,
