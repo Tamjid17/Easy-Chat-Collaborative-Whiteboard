@@ -6,10 +6,13 @@ import ConversationItem from "./ConversationItem";
 import { useEffect, useState } from "react";
 import { useSearchUsers } from "@/hooks/useUser";
 import type { User } from "@/lib/types/user";
-import { useAuthStore } from "@/store/authStore"; 
+import { useAuthStore } from "@/store/authStore";
+import { useChatStore } from "@/store/chatStore";
 import UserSettingsModal from "./UserSettingsModal";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import type { Conversation } from "@/lib/types/conversation";
+import { useGetConversations } from "@/hooks/useConversations";
 
 interface SidebarProps {
   onUserSelect: (user: User) => void;
@@ -23,6 +26,10 @@ const Sidebar = ({ onUserSelect }: SidebarProps) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  const { data: conversations } = useGetConversations();
+
+  const { selectedConversationId, setSelectedConversationId } = useChatStore();
 
 
   const handleLogout = () => {
@@ -103,14 +110,14 @@ const Sidebar = ({ onUserSelect }: SidebarProps) => {
       <div className="flex-1 overflow-y-auto -mr-4 pr-4">
         <div className="space-y-2">
           {/* Example Conversation Items */}
-          <ConversationItem
-            name="John Doe"
-            lastMessage="How are you?"
-            isActive={true}
-          />
-          <ConversationItem name="Jane Smith" lastMessage="I am fine" />
-          <ConversationItem name="Alice" lastMessage="See you tomorrow!" />
-          <ConversationItem name="Bob" lastMessage="Okay, sounds good." />
+          {conversations?.map((convo: Conversation) => (
+            <ConversationItem
+              key={convo._id}
+              conversation={convo}
+              isSelected={convo._id === selectedConversationId}
+              onClick={() => setSelectedConversationId(convo._id)}
+            />
+          ))}
         </div>
       </div>
     </aside>
