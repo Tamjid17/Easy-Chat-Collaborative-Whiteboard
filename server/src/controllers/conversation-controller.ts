@@ -3,7 +3,7 @@ import Conversation from "../models/Conversation";
 
 export const getConversations = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?._id;
+        const userId = (req as any).user?._id;
         // 1. Validate userId
         if (!userId) {
             res.status(400).json({
@@ -47,7 +47,7 @@ export const getConversations = async (req: Request, res: Response): Promise<voi
 export const createConversation = async (req: Request, res: Response): Promise<void> => {
     try {
         const { recipientId } = req.body;
-        const senderId = (req as any).userInfo?._id;
+        const senderId = (req as any).user?._id;
 
         // 1. Validate input
         if (!recipientId) {
@@ -102,7 +102,7 @@ export const createConversation = async (req: Request, res: Response): Promise<v
 
 export const getChatHistory = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?._id;
+        const userId = (req as any).user?._id;
         const { conversationId } = req.params;
 
         // 1. Validate conversationId
@@ -139,7 +139,7 @@ export const getChatHistory = async (req: Request, res: Response): Promise<void>
 
         // 3. Security Check: Ensure the user is part of this conversation
         const isParticipant = conversation.participants.some(
-            (p: any) => p._id.toString() === userId
+            (p: any) => p._id.toString() === userId.toString()
         );
 
         if (!isParticipant) {
