@@ -13,6 +13,7 @@ interface ChatHeaderProps {
 const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
     const { selectedConversationId } = useChatStore();
     const loggedInUser = useAuthStore((state) => state.user);
+    const { onlineUserIds } = useChatStore();
 
     const { data: conversationData, isLoading } = useGetChatHistory(selectedConversationId);
 
@@ -29,6 +30,7 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
     }
 
     const otherUser = conversationData?.conversation.participants.find((p: any) => p._id !== loggedInUser?._id);
+    const isOnline = otherUser ? onlineUserIds.includes(otherUser._id) : false;
 
     if (!otherUser) {
         return (
@@ -53,8 +55,17 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
         <div>
             <h2 className="text-lg font-bold text-customPrimary">{otherUser.fullName}</h2>
             <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-customAccentOne"></span>
-            <p className="text-sm text-muted-foreground">Online</p>
+             {isOnline ? (
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-customAccentOne"></span>
+              <p className="text-sm text-muted-foreground">Online</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-red-400"></span>
+            <p className="text-sm text-muted-foreground">Offline</p>
+            </div>
+          )}
             </div>
         </div>
         </div>

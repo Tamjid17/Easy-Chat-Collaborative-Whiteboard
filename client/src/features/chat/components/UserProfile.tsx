@@ -5,6 +5,7 @@ import { MessageSquarePlus } from "lucide-react";
 import { useBlockUser, useUnblockUser } from "@/hooks/useUser";
 import type { User } from "@/lib/types/user";
 import { useAuthStore } from "@/store/authStore";
+import { useChatStore } from "@/store/chatStore";
 import { useCreateConversation } from "@/hooks/useConversations";
 
 interface UserProfileProps {
@@ -17,6 +18,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
 
     const loggedInUser = useAuthStore((state) => state.user);
     const clearAuth = useAuthStore((state) => state.clearAuth);
+    const { onlineUserIds } = useChatStore();
     const { mutate: createConversation, isPending: isCreating } = useCreateConversation();
 
     const handleStartConversation = () => {
@@ -26,6 +28,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
 
     const isBlocked = loggedInUser?.blockedUsers.includes(user._id);
     const isOwnProfile = loggedInUser?._id === user._id;
+    const isOnline = onlineUserIds.includes(user._id);
 
     const handleBlockUser = () => {
         if(!user?._id) return;
@@ -70,9 +73,13 @@ const UserProfile = ({ user }: UserProfileProps) => {
           {user.fullName}
         </h2>
         <p className="text-muted-foreground">
-          Status:{" "}
+          Status
           <span className="text-destructive">
-            {user.activeStatus ? "Active" : "Inactive"}
+            {isOnline ? 
+              (<p className="text-green-500">Online</p>) 
+              : 
+              (<p className="text-red-500">Offline</p>)
+            }
           </span>
         </p>
         <p className="text-muted-foreground">Email: {user.email}</p>
