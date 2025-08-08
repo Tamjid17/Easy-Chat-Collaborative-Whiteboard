@@ -1,18 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import User from '../models/User';
 import dotenv from 'dotenv';
 dotenv.config();
 
 interface AuthenticatedRequest extends Request {
-  userInfo?: string | JwtPayload;
+  user?: any;
 }
 
 export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
 
     // extracting the token from header
-    const authHeader = req.headers['authorization'];
-    console.log("Authorization Header:", authHeader);
-    
+    const authHeader = req.headers['authorization'];    
     const token = authHeader && authHeader.split(" ")[1];
     if (!token) {
     res.status(401).json({
@@ -31,9 +30,15 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
                 'JWT_SECRET_KEY is not defined in environment variables'
             );
         }
-        const decodedToken = jwt.verify(token, secretKey);
-        console.log(decodedToken);
-        req.userInfo = decodedToken;
+        const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
+        const user = await User.findById(decodedToken.userId).select("-password");
+
+        if (!user) {
+            res.status(401).json({ message: "Invalid token, user not found." });
+            return;
+        }
+
+        req.user = user;
         next();
 
     } catch(e) {
