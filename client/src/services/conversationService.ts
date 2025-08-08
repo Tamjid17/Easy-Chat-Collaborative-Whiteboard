@@ -2,7 +2,7 @@ import apiClient from "../api/apiClient";
 
 export const getConversations = async () => {
     const { data } = await apiClient.get("/conversations");
-    return data;
+    return data.conversations;
 };
 
 export const getChatHistory = async (conversationId: string) => {
