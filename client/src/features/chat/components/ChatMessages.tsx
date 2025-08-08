@@ -4,11 +4,25 @@ import { useChatStore } from "@/store/chatStore";
 import { useAuthStore } from "@/store/authStore";
 import type { Message } from "@/lib/types/message";
 
+import { useRef, useEffect } from "react";
+
 const ChatMessages = () => {
-    const { selectedConversationId } = useChatStore();
-    const { data: chatHistory, isLoading } = useGetChatHistory(selectedConversationId);
-    const loggedInUser = useAuthStore((state) => state.user);
-     
+  const { selectedConversationId } = useChatStore();
+  const { data: chatHistory, isLoading } = useGetChatHistory(
+    selectedConversationId
+  );
+  const loggedInUser = useAuthStore((state) => state.user);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory]);
+
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-4">
       {isLoading && <p>Loading messages...</p>}
@@ -35,10 +49,11 @@ const ChatMessages = () => {
                 className="rounded-md mb-2 max-w-full h-auto"
               />
             )}
-          {message.content && <p>{message.content}</p>}
+            {message.content && <p>{message.content}</p>}
           </div>
         </div>
       ))}
+      <div ref={messagesEndRef} className="h-0" />
     </div>
   );
 };
