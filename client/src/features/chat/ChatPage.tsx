@@ -3,16 +3,39 @@ import ChatHeader from "./components/ChatHeader";
 import ChatMessages from "./components/ChatMessages";
 import ChatInput from "./components/ChatInput";
 import UserProfile from "./components/UserProfile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useChatStore } from "@/store/chatStore";
 import type { User } from "@/lib/types/user";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSocket } from "@/hooks/useSocket";
+import type { Message } from "@/lib/types/message";
 
 export default function ChatPage() {
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+
   const { selectedConversationId, setSelectedConversationId } = useChatStore();
   const user = useAuthStore((state) => state.user);
 
   const [profileUser, setProfileUser] = useState<User | null>(user);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newMessage", (newMessage: Message) => {
+      console.log("New message received from socket:", newMessage);
+
+      queryClient.invalidateQueries({
+        queryKey: ["conversations", newMessage.conversationId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    });
+
+    return () => {
+      socket.off("newMessage");
+    };
+  }, [socket, queryClient]);
 
   const handleUserSelect = (user: User) => {
     setProfileUser(user);
