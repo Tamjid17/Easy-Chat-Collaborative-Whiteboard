@@ -1,38 +1,47 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Conversation } from "@/lib/types/conversation";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 
 interface ConversationItemProps {
-    name: string;
-    lastMessage: string;
-    isActive?: boolean;
+  conversation: Conversation;
+  isSelected: boolean;
+  onClick: () => void;
 }
 
 const ConversationItem = ({
-    name,
-    lastMessage,
-    isActive,
+    conversation,
+    isSelected,
+    onClick,
     }: ConversationItemProps) => {
+
+    const loggedInUser = useAuthStore((state) => state.user);
+
+    const otherUser = conversation.participants.find((p) => p._id !== loggedInUser?._id);
+    const lastMessage = conversation.messages[conversation.messages.length - 1] || "No messages yet";
+
     return (
-        <div
+      <div
+        onClick={onClick}
         className={cn(
-            "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted",
-            isActive && "bg-customAccentTwo/20"
+          "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted",
+          isSelected && "bg-customAccentTwo/20"
         )}
-        >
+      >
         <Avatar>
-            <AvatarImage
-            src={`https://placehold.co/40x40/F8FFE5/4E4187?text=${name.charAt(
-                0
-            )}`}
-            alt={name}
-            />
-            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          <AvatarImage
+            src={otherUser?.profilePicture}
+            alt={otherUser?.fullName}
+          />
+          <AvatarFallback>{otherUser?.fullName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 overflow-hidden">
-            <p className="font-semibold text-foreground truncate">{name}</p>
-            <p className="text-sm text-muted-foreground truncate">{lastMessage}</p>
+          <p className="font-semibold text-foreground truncate">{otherUser?.fullName}</p>
+          <p className="text-sm text-muted-foreground truncate">
+            {lastMessage?.content || "No messages yet"}
+          </p>
         </div>
-        </div>
+      </div>
     );
 };
 
