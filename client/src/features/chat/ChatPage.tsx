@@ -5,42 +5,44 @@ import ChatInput from "./components/ChatInput";
 import UserProfile from "./components/UserProfile";
 import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { useChatStore } from "@/store/chatStore";
 import type { User } from "@/lib/types/user";
 
 export default function ChatPage() {
+  const { selectedConversationId, setSelectedConversationId } = useChatStore();
+  const user = useAuthStore((state) => state.user);
 
-    
-    const user = useAuthStore((state) => state.user);
-    const [selectedChat, setSelectedChat] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(user);
 
-    const [profileUser, setProfileUser] = useState<User | null>(user);
+  const handleUserSelect = (user: User) => {
+    setProfileUser(user);
+    setSelectedConversationId(null);
+  };
 
-    const handleUserSelect = (user: User) => {
-      setProfileUser(user);
-      setSelectedChat(false);
-    };
+  const isChatView = !!selectedConversationId;
+  const isProfileView = !!profileUser && !isChatView;
 
-    return (
-      <div className="font-sans h-screen w-full flex bg-customBackground">
-        {/* Sidebar */}
-        <Sidebar onUserSelect={handleUserSelect} />
+  return (
+    <div className="font-sans h-screen w-full flex bg-customBackground">
+      {/* Sidebar */}
+      <Sidebar onUserSelect={handleUserSelect} />
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col">
-          {selectedChat ? (
-            <>
-              <ChatHeader />
-              <ChatMessages />
-              <ChatInput />
-            </>
-          ) : profileUser ? (
-            <UserProfile user={profileUser} />
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-muted-foreground">Loading user profile...</p>
-            </div>
-          )}
-        </main>
-      </div>
-    );
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col">
+        {isChatView ? (
+          <>
+            <ChatHeader />
+            <ChatMessages />
+            <ChatInput />
+          </>
+        ) : isProfileView ? (
+          <UserProfile user={profileUser} />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground">Loading user profile...</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }
