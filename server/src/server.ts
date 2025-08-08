@@ -9,6 +9,7 @@ import { connectToDB } from './database/db'
 import userRoutes from './routes/user-routes';
 import conversationRoutes from './routes/conversation-routes';
 import messageRoutes from './routes/message-routes';
+import User from './models/User';
 
 const app: Express = express();
 connectToDB();
@@ -32,16 +33,25 @@ io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId as string;
     if (userId) {
         userSocketMap.set(userId, socket.id);
+        User.findByIdAndUpdate(userId, { activeStatus: true }).exec();
         console.log(`User ${userId} mapped to socket ${socket.id}`);
     }
 
+    io.emit("onlineUsers", Array.from(userSocketMap.keys()));
+
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
+        let disconnectedUserId: string | null = null;
         for (const [key, value] of userSocketMap.entries()) {
         if (value === socket.id) {
+            disconnectedUserId = key;
             userSocketMap.delete(key);
             break;
         }
+        }
+        if (disconnectedUserId) {
+            User.findByIdAndUpdate(disconnectedUserId, { activeStatus: false }).exec();
+            io.emit("onlineUsers", Array.from(userSocketMap.keys()));
         }
     });
 });
