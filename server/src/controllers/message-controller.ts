@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import Conversation from "../models/Conversation";
 import Message from "../models/Message";
+import { io, userSocketMap } from "../server";
 
-import mongoose from "mongoose";
 import uploadImageFromBuffer from "../helpers/cloudinary-helper";
 
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
@@ -60,13 +60,27 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
             imagePublicId: imagePublicId || '',
         });
 
-        await newMessage.save();
-
-        // 5. Update the conversation with the new message
-        conversation.messages.push(newMessage._id);
-        await conversation.save();
+        await Promise.all([
+            newMessage.save(),
+            Conversation.updateOne(
+                { _id: conversationId },
+                {
+                $push: { messages: newMessage._id },
+                $set: { lastMessage: newMessage._id },
+                }
+            ),
+        ]);
 
         await newMessage.populate("sender", "fullName profilePicture email");
+
+        conversation.participants.forEach((participantId) => {
+            if (participantId.toString() === senderId.toString()) return;
+
+            const recipientSocketId = userSocketMap.get(participantId.toString());
+            if (recipientSocketId) {
+                io.to(recipientSocketId).emit("newMessage", newMessage);
+            }
+        });
 
         res.status(201).json({
             success: true,
