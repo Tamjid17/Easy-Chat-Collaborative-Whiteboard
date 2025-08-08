@@ -54,7 +54,7 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col">
         {isChatView ? (
           <>
-            <ChatHeader />
+            <ChatHeader onUserSelect={handleUserSelect} />
             <ChatMessages />
             <ChatInput />
           </>

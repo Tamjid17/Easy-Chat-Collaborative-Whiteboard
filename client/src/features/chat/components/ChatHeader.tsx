@@ -4,9 +4,13 @@ import { useChatStore } from "@/store/chatStore";
 import { useGetChatHistory } from "@/hooks/useConversations";
 import { useAuthStore } from "@/store/authStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { User } from "@/lib/types/user";
 
+interface ChatHeaderProps {
+  onUserSelect: (user: User) => void;
+}
 
-const ChatHeader = () => {
+const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
     const { selectedConversationId } = useChatStore();
     const loggedInUser = useAuthStore((state) => state.user);
 
@@ -36,6 +40,10 @@ const ChatHeader = () => {
 
     return (
         <header className="flex items-center gap-4 p-4 border-b border-border/40">
+        <div
+            className="cursor-pointer flex items-center gap-3"
+            onClick={() => onUserSelect(otherUser)}
+        >
         <Avatar>
             <AvatarImage
             src={otherUser.profilePicture} alt={otherUser.fullName}
@@ -48,6 +56,7 @@ const ChatHeader = () => {
             <span className="h-2 w-2 rounded-full bg-customAccentOne"></span>
             <p className="text-sm text-muted-foreground">Online</p>
             </div>
+        </div>
         </div>
         </header>
     );
