@@ -118,7 +118,7 @@ export const getChatHistory = async (req: Request, res: Response): Promise<void>
         const conversation = await Conversation.findById(conversationId)
             .populate({
                 path: "participants",
-                select: "fullName profilePicture email",
+                select: "_id fullName profilePicture email joinedAt blockedUsers activeStatus",
             })
             .populate({
                 path: "messages",
