@@ -18,8 +18,20 @@ export const useSendMessage = () => {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     onError: (error) => {
-      const errorMessage = (error instanceof AxiosError && error.response?.data?.message) || "Failed to send message.";
-      toast.error("Message Failed", { description: errorMessage });
+      if (error instanceof AxiosError) {
+        const errorMessage = error.response?.data?.message;
+        if (error.response?.status === 403) {
+          toast.error("Message blocked", {
+            description:
+              errorMessage ||
+              "Cannot send message due to blocking restrictions",
+          });
+        } else {
+          toast.error("Failed to send message", {
+            description: errorMessage || "Please try again",
+          });
+        }
+      }
     },
   });
 };
