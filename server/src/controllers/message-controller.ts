@@ -4,6 +4,7 @@ import Message from "../models/Message";
 import { io, userSocketMap } from "../server";
 
 import uploadImageFromBuffer from "../helpers/cloudinary-helper";
+import User from "../models/User";
 
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -51,7 +52,42 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
-        // 4. Create the message
+        const otherParticipantId = conversation.participants.find(p => p.toString() !== senderId.toString());
+
+        if (!otherParticipantId) {
+            res.status(404).json({
+                success: false,
+                message: "Invalid conversation: No other participants found.",
+            });
+            return;
+        }
+
+        // 4. Check if sender or receiver is blocked
+        const sender = await User.findById(senderId);
+        const receiver = await User.findById(otherParticipantId);
+
+        if (!sender || !receiver) {
+            res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+            return;
+        }
+
+        const isSenderBlocked =
+            receiver?.blockedUsers?.some((blockedId: any) => blockedId.toString() === senderId.toString()) || false;
+        const isReceiverBlocked =
+            sender?.blockedUsers?.some((blockedId: any) =>blockedId.toString() === otherParticipantId.toString()) || false;
+
+        if (isSenderBlocked || isReceiverBlocked) {
+            res.status(403).json({
+                success: false,
+                message: "Cannot send message due to blocking restrictions",
+            });
+            return;
+        }
+
+        // 5. Create the message
         const newMessage = new Message({
             sender: senderId,
             conversationId: conversation._id,
