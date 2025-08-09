@@ -10,6 +10,7 @@ import userRoutes from './routes/user-routes';
 import conversationRoutes from './routes/conversation-routes';
 import messageRoutes from './routes/message-routes';
 import User from './models/User';
+import Conversation from './models/Conversation';
 
 const app: Express = express();
 connectToDB();
@@ -54,6 +55,44 @@ io.on("connection", (socket) => {
             io.emit("onlineUsers", Array.from(userSocketMap.keys()));
         }
     });
+
+    socket.on('sendMessage', async (data) => {
+        try {
+        const conversation = await Conversation.findById(data.conversationId)
+            .populate('participants');
+        
+        if (!conversation) return;
+        
+        const otherParticipant = conversation.participants.find(
+            (p: any) => p._id.toString() !== data.senderId
+        );
+        
+        if (!otherParticipant) return;
+        
+        const sender = await User.findById(data.senderId);
+        const receiver = await User.findById(otherParticipant._id);
+
+        const senderId = data.senderId.toString();
+        const otherParticipantId = otherParticipant._id.toString();
+
+        const isSenderBlocked =
+            receiver?.blockedUsers?.some(
+            (blockedId: any) => blockedId.toString() === senderId
+            ) || false;
+        const isReceiverBlocked = sender?.blockedUsers?.some(
+            (blockedId: any) => blockedId.toString() === otherParticipantId
+        ) || false;
+
+        if (!isSenderBlocked && !isReceiverBlocked) {
+            const recipientSocketId = userSocketMap.get(otherParticipant._id.toString());
+            if (recipientSocketId) {
+                io.to(recipientSocketId).emit("newMessage", data);
+            }
+        }
+    } catch (error) {
+        console.error('Socket sendMessage error:', error);
+    }
+    })
 });
 
 const PORT = process.env.PORT
