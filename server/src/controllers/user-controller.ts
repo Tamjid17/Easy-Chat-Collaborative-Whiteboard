@@ -136,7 +136,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
 export const updateName = async (req: Request, res: Response): Promise<void> => {
     try{
-        const userId = (req as any).userInfo?.userId;
+        const userId = (req as any).user?._id;
         const { fullName } = req.body;
 
         if (!fullName) {
@@ -171,7 +171,7 @@ export const updateName = async (req: Request, res: Response): Promise<void> => 
 
 export const updateProfilePicture = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?.userId;
+        const userId = (req as any).user?._id;
 
         if (!req.file) {
             res.status(400).json({ success: false, message: 'No image file provided.' });
@@ -221,7 +221,7 @@ export const updateProfilePicture = async (req: Request, res: Response): Promise
 
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?.userId;
+        const userId = (req as any).user?._id;
         const { oldPassword, newPassword } = req.body;
 
         if(!oldPassword || !newPassword) {
@@ -280,7 +280,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
 
 export const blockUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?.userId;
+        const userId = (req as any).user?._id;
         const { userToBlockId } = req.body;
 
         // check if userToBlockId is provided
@@ -340,7 +340,7 @@ export const blockUser = async (req: Request, res: Response): Promise<void> => {
 
 export const unblockUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as any).userInfo?.userId;
+        const userId = (req as any).user?._id;
         const { userToUnblockId } = req.body;
 
         // input field validation
