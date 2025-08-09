@@ -1,10 +1,12 @@
-import { ImagePlus, SendHorizonal, X } from "lucide-react";
+import { ImagePlus, SendHorizonal, ShieldAlert, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { useSendMessage } from "@/hooks/useMessage";
 import { useChatStore } from "@/store/chatStore";
 import { useRef, useState } from "react";
+import { useAuthStore } from "@/store/authStore";
+import { useGetChatHistory } from "@/hooks/useConversations";
 
 const ChatInput = () => {
         const [content, setContent] = useState("");
@@ -13,39 +15,82 @@ const ChatInput = () => {
         const fileInputRef = useRef<HTMLInputElement>(null);
 
         const { selectedConversationId } = useChatStore();
+        const loggedInUser = useAuthStore((state) => state.user);
         const { mutate: sendMessage, isPending } = useSendMessage();
 
-        const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-            const file = event.target.files?.[0];
-            if (file) {
-                setSelectedFile(file);
-                setPreviewUrl(URL.createObjectURL(file));
-            }
-        };
+        const { data: conversationData, isLoading } = useGetChatHistory(selectedConversationId);
+        
+        
+        
+        if (isLoading) {
+          return (
+              <footer className="p-4 border-t border-border/40">
+          <div className="relative">
+            <Input
+              placeholder="Loading chat..."
+              className="h-12 bg-muted"
+              disabled
+              />
+          </div>
+        </footer>
+      );
+    }
+    
+    const otherUser = conversationData?.conversation.participants.find((p: any) => p._id !== loggedInUser?._id);
 
-        const handleSend = () => {
-          if ((!content || !content.trim()) && !selectedFile) return;
-          if (!selectedConversationId) return;
+    const isBlockedByYou = loggedInUser?.blockedUsers?.some(
+        (blockedId: any) => blockedId.toString() === otherUser?._id?.toString()
+      ) || false;
+    const isBlockedByOther = otherUser?.blockedUsers?.some(
+      (blockedId: any) => blockedId.toString() === loggedInUser?._id?.toString()
+    ) || false;
 
-            sendMessage({ 
-              conversationId: selectedConversationId, 
-              content: content,
-              file: selectedFile});
+    const otherUserName = otherUser?.fullName || "User";
+    
 
-            setContent("");
-            setSelectedFile(null);
-            setPreviewUrl(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
-        };
-
-        const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            //event.preventDefault();
-            handleSend();
-        }
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+      }
     };
+    
+    const handleSend = () => {
+      if ((!content || !content.trim()) && !selectedFile) return;
+      if (!selectedConversationId) return;
+      
+      sendMessage({ 
+        conversationId: selectedConversationId, 
+          content: content,
+          file: selectedFile});
+
+        setContent("");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      };
+      
+      const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          //event.preventDefault();
+          handleSend();
+        }
+      };
+    
+    if (isBlockedByYou || isBlockedByOther) {
+        return (
+            <div className="p-4 border-t border-border/40 text-center text-muted-foreground">
+                <ShieldAlert className="h-6 w-6 mx-auto mb-2 text-destructive" />
+                {isBlockedByYou 
+                    ? `You have blocked ${otherUserName}. Unblock them to continue chatting.`
+                    : `You have been blocked by ${otherUserName}.`
+                }
+            </div>
+        );
+    }
 
     return (
       <footer className="p-4 border-t border-border/40">
