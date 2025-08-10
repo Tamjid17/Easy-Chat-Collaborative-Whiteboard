@@ -15,6 +15,8 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
 
+    const [otherUserId, setOtherUserId] = useState<string | null>(null);
+
     const myVideo = useRef<HTMLVideoElement>(null);
     const userVideo = useRef<HTMLVideoElement>(null);
     const connectionRef = useRef<any>(null);
@@ -31,7 +33,6 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
           })
           .catch((error) => {
             console.error("Error accessing media devices:", error);
-            // You might want to show a toast error here
           });
     }, []);
 
@@ -40,12 +41,14 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
         if (!socket) return;
         socket.on("incoming-call", ({ from, name, signal }) => {
         setCall({ isReceivingCall: true, from, name, signal });
+        setOtherUserId(from);
         });
 
         socket.on("call-rejected", () => {
           console.log("Call was rejected");
           setCall(null);
           setCallAccepted(false);
+          setOtherUserId(null);
           if (connectionRef.current) {
             connectionRef.current.destroy();
             connectionRef.current = null;
@@ -53,8 +56,9 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
         });
 
         socket.on("call-ended", () => {
-          setCallAccepted(false);
+        setCallAccepted(false);
         setCall(null);
+        setOtherUserId(null);
         if (connectionRef.current) {
             connectionRef.current.destroy();
             connectionRef.current = null;
@@ -79,6 +83,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
           return;
         }
         
+        setOtherUserId(id);
         socket?.off("call-accepted");
 
         try {
@@ -88,7 +93,6 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
             stream: stream,
           });
           console.log("Peer created successfully:", peer);
-          // ... rest of the function
           
           peer.on("signal", (data) => {
         socket?.emit("call-user", {
@@ -117,7 +121,14 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
     };
 
     const answerCall = () => {
+        if (!call || !stream) {
+            console.error("No call to answer or stream not available");
+            return;
+        }
+
         setCallAccepted(true);
+
+        setOtherUserId(call.from);
 
         setCall((prev) => (prev ? { ...prev, isReceivingCall: false } : null));
         const peer = new SimplePeer({ initiator: false, trickle: false, stream: stream! });
@@ -147,10 +158,16 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
           to: call.from,
         });
       }
-        setCallAccepted(false);
-        setCall(null);
-        socket?.off("call-accepted");
-        if (connectionRef.current) {
+      if(otherUserId) {
+        socket?.emit("end-call", {
+          to: otherUserId,
+        });
+      }
+      setCallAccepted(false);
+      setCall(null);
+      setOtherUserId(null);
+      socket?.off("call-accepted");
+      if (connectionRef.current) {
         connectionRef.current.destroy();
         }
         connectionRef.current = null;
@@ -165,6 +182,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
       }
 
       setCall(null);
+      setOtherUserId(null);
     };
 
     const toggleAudio = () => {
