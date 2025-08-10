@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const CallModal = () => {
-  const { myVideo, userVideo, callAccepted, leaveCall, stream, isMuted, isVideoOff, toggleAudio, toggleVideo } = useCall();
+  const { myVideo, userVideo, callAccepted, call, leaveCall, stream, isMuted, isVideoOff, toggleAudio, toggleVideo } = useCall();
+
+  if (!callAccepted && !call?.isReceivingCall) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -32,6 +36,17 @@ export const CallModal = () => {
             autoPlay
             className="w-full h-full object-cover"
           />
+        )}
+
+        {!callAccepted && call?.isReceivingCall && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white text-center">
+              <p className="text-xl mb-2">Incoming call from {call.name}</p>
+              <p className="text-sm opacity-75">
+                Answer the call to start video chat
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Call Controls */}
