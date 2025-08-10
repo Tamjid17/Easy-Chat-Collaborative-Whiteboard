@@ -5,6 +5,9 @@ import { useGetChatHistory } from "@/hooks/useConversations";
 import { useAuthStore } from "@/store/authStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User } from "@/lib/types/user";
+import { useCall } from "@/hooks/useCall";
+import { Button } from "@/components/ui/button";
+import { Phone, Video } from "lucide-react";
 
 interface ChatHeaderProps {
   onUserSelect: (user: User) => void;
@@ -14,6 +17,8 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
     const { selectedConversationId } = useChatStore();
     const loggedInUser = useAuthStore((state) => state.user);
     const { onlineUserIds } = useChatStore();
+
+    const { callUser } = useCall();
 
     const { data: conversationData, isLoading } = useGetChatHistory(selectedConversationId);
 
@@ -41,7 +46,7 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
     }
 
     return (
-        <header className="flex items-center gap-4 p-4 border-b border-border/40">
+        <header className="flex items-center justify-between p-4 border-b border-border/40">
         <div
             className="cursor-pointer flex items-center gap-3"
             onClick={() => onUserSelect(otherUser)}
@@ -69,6 +74,14 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
             </div>
         </div>
         </div>
+        <div className="flex items-center gap-2">
+          <Button size="icon" variant="outline" onClick={() => callUser(otherUser._id)}>
+            <Video className="h-5 w-5 text-customAccentOne" />
+          </Button>
+          <Button size="icon" variant="outline" onClick={() => callUser(otherUser._id)}>
+            <Phone className="h-5 w-5 text-customAccentTwo" />
+          </Button>
+      </div>
         </header>
     );
 };
