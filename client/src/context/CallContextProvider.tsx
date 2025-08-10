@@ -41,6 +41,31 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
         socket.on("incoming-call", ({ from, name, signal }) => {
         setCall({ isReceivingCall: true, from, name, signal });
         });
+
+        socket.on("call-rejected", () => {
+          console.log("Call was rejected");
+          setCall(null);
+          setCallAccepted(false);
+          if (connectionRef.current) {
+            connectionRef.current.destroy();
+            connectionRef.current = null;
+          }
+        });
+
+        socket.on("call-ended", () => {
+          setCallAccepted(false);
+        setCall(null);
+        if (connectionRef.current) {
+            connectionRef.current.destroy();
+            connectionRef.current = null;
+          }
+        });
+
+        return () => {
+          socket.off("incoming-call");
+          socket.off("call-rejected");
+          socket.off("call-ended");
+        };
     }, [socket]);
 
     const callUser = (id: string) => {
@@ -48,10 +73,13 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
         console.log("stream:", stream);
         console.log("SimplePeer:", SimplePeer);
 
+        
         if (!stream) {
           console.error("No stream available for call");
           return;
         }
+        
+        socket?.off("call-accepted");
 
         try {
           const peer = new SimplePeer({
@@ -109,11 +137,34 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
     };
 
     const leaveCall = () => {
+
+      if (connectionRef.current && connectionRef.current.peer) {
+        socket?.emit("end-call", {
+          to: connectionRef.current.peer,
+        });
+      } else if (call) {
+        socket?.emit("end-call", {
+          to: call.from,
+        });
+      }
         setCallAccepted(false);
         setCall(null);
+        socket?.off("call-accepted");
         if (connectionRef.current) {
         connectionRef.current.destroy();
         }
+        connectionRef.current = null;
+    };
+
+    const rejectCall = () => {
+      if (call) {
+        socket?.emit("call-rejected", {
+          to: call.from,
+          from: loggedInUser?._id,
+        });
+      }
+
+      setCall(null);
     };
 
     const toggleAudio = () => {
@@ -151,6 +202,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
       callUser,
       answerCall,
       leaveCall,
+      rejectCall,
       isMuted,
       isVideoOff,
       toggleAudio,
