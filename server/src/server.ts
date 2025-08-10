@@ -61,6 +61,16 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Event to reject a call
+    socket.on("call-rejected", (data) => {
+        const { to } = data;
+        const callerSocketId = userSocketMap.get(to);
+
+        if (callerSocketId) {
+            io.to(callerSocketId).emit("call-rejected", { from: socket.id });
+        }
+    });
+
     // Handle ICE candidates for WebRTC
     socket.on("ice-candidate", (data) => {
       const { to, candidate } = data;
