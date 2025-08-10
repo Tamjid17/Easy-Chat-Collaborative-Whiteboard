@@ -38,8 +38,51 @@ io.on("connection", (socket) => {
         console.log(`User ${userId} mapped to socket ${socket.id}`);
     }
 
+    // Emit the list of online users
     io.emit("onlineUsers", Array.from(userSocketMap.keys()));
 
+    // Event to initate a call
+    socket.on("call-user", (data) => {
+        const { recipientId, signalData, from, name } = data;
+        const recipientSocketId = userSocketMap.get(recipientId);
+
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit("incoming-call", { signal: signalData, from, name });
+        }
+    });
+
+    // Event to answer a call
+    socket.on("answer-call", (data) => {
+        const { to, signal } = data;
+        const callerSocketId = userSocketMap.get(to);
+
+        if (callerSocketId) {
+            io.to(callerSocketId).emit("call-accepted", signal);
+        }
+    });
+
+    // Handle ICE candidates for WebRTC
+    socket.on("ice-candidate", (data) => {
+      const { to, candidate } = data;
+      const recipientSocketId = userSocketMap.get(to);
+
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("ice-candidate", candidate);
+      }
+    });
+
+
+    // Event to end call
+    socket.on("end-call", (data) => {
+      const { to } = data;
+      const recipientSocketId = userSocketMap.get(to);
+
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("call-ended");
+      }
+    });
+
+    // Handle User disconnection from server
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
         let disconnectedUserId: string | null = null;
@@ -56,6 +99,7 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Handle message sending
     socket.on('sendMessage', async (data) => {
         try {
         const conversation = await Conversation.findById(data.conversationId)
