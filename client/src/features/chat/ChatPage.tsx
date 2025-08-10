@@ -10,10 +10,14 @@ import type { User } from "@/lib/types/user";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "@/hooks/useSocket";
 import type { Message } from "@/lib/types/message";
+import { useCall } from "@/hooks/useCall";
+import { CallModal } from "./components/CallModal";
+import { IncomingCallNotification } from "./components/IncomingCallNotification";
 
 export default function ChatPage() {
   const { socket } = useSocket();
   const queryClient = useQueryClient();
+  const { call, callAccepted } = useCall();
 
   const { selectedConversationId, setSelectedConversationId } = useChatStore();
   const user = useAuthStore((state) => state.user);
@@ -66,6 +70,8 @@ export default function ChatPage() {
           </div>
         )}
       </main>
+      {(call?.isReceivingCall || callAccepted) && <CallModal />}
+      <IncomingCallNotification />
     </div>
   );
 }
