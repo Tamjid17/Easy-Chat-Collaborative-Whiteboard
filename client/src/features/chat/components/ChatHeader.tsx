@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { User } from "@/lib/types/user";
 import { useCall } from "@/hooks/useCall";
 import { Button } from "@/components/ui/button";
-import { Phone, Video } from "lucide-react";
+import { Video } from "lucide-react";
 
 interface ChatHeaderProps {
   onUserSelect: (user: User) => void;
@@ -74,12 +74,12 @@ const ChatHeader = ({ onUserSelect }: ChatHeaderProps) => {
             </div>
         </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="icon" variant="outline" onClick={() => callUser(otherUser._id)}>
-            <Video className="h-5 w-5 text-customAccentOne" />
-          </Button>
-          <Button size="icon" variant="outline" onClick={() => callUser(otherUser._id)}>
-            <Phone className="h-5 w-5 text-customAccentTwo" />
+        <div className="flex items-center pr-4 gap-3">
+          <Button size="lg" 
+          className="bg-customAccentOne/90 text-white cursor-pointer hover:bg-customAccentOne/80 transition-colors"
+          variant="outline" 
+          onClick={() => callUser(otherUser._id)}>
+            <Video className="h-5 w-5 text-customPrimary" />
           </Button>
       </div>
         </header>
