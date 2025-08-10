@@ -16,6 +16,7 @@ export interface CallContextType {
     callUser: (id: string) => void;
     answerCall: () => void;
     leaveCall: () => void;
+    rejectCall: () => void;
     isMuted: boolean;
     isVideoOff: boolean;
     toggleAudio: () => void;
