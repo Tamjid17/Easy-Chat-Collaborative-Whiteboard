@@ -147,6 +147,36 @@ io.on("connection", (socket) => {
         console.error('Socket sendMessage error:', error);
     }
     })
+
+    // Whiteboard events
+    socket.on("join-whiteboard-room", (roomId) => {
+        socket.join(roomId);
+        console.log(`Socket ${socket.id} joined whiteboard room ${roomId}`);
+    });
+
+    socket.on("start-drawing", (data) => {
+        socket.to(data.roomId).emit("user-started-drawing", data);
+    });
+
+    socket.on("drawing", (data) => {
+        socket.to(data.roomId).emit("user-is-drawing", data);
+    });
+
+    socket.on("finish-drawing", (data) => {
+        socket.to(data.roomId).emit("user-finished-drawing", data);
+    });
+
+    socket.on("clear-canvas", (roomId) => {
+        socket.to(roomId).emit("canvas-cleared");
+    });
+
+    socket.on("undo", (data) => {
+        socket.to(data.roomId).emit("user-undid", data.pathId);
+    });
+
+    socket.on("redo", (data) => {
+        socket.to(data.roomId).emit("user-redid", data.path);
+    });
 });
 
 const PORT = process.env.PORT
