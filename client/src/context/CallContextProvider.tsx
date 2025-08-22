@@ -78,7 +78,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
         console.log("SimplePeer:", SimplePeer);
 
         
-        if (!stream) {
+        if (!stream || !socket) {
           console.error("No stream available for call");
           return;
         }
