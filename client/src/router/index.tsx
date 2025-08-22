@@ -4,6 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AuthPage from "@/features/AuthPage";
 import ChatPage from "@/features/chat/ChatPage";
 import NotFoundPage from "@/features/NotFoundPage";
+import { WhiteboardPage } from "@/features/whiteboard/WhiteboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,6 +14,10 @@ export const router = createBrowserRouter([
       {
         path: "/",
         element: <ChatPage />,
+      },
+      {
+        path: "/whiteboard/:roomId",
+        element: <WhiteboardPage />,
       },
     ],
   },
